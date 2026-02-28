@@ -10,7 +10,7 @@
     <main class="app">
       <section id="screen-custom" class="screen active">
         <div class="card custom-card">
-          <h1>Personalize sua calopsita</h1>
+          <h1>Personalize sua calopsita 3D</h1>
           <div class="field-group">
             <label for="bodyColor">Cor do corpo</label>
             <input id="bodyColor" type="color" value="#c7cfd9" />
@@ -35,17 +35,9 @@
         </div>
 
         <div class="card preview-card">
-          <h2>Pré-visualização</h2>
+          <h2>Pré-visualização anatômica</h2>
           <div class="cage preview-cage">
-            <div id="previewBird" class="bird mood-feliz">
-              <div class="crest"></div>
-              <div class="head">
-                <div class="eye"></div>
-                <div class="beak"></div>
-                <div class="cheek"></div>
-              </div>
-              <div class="body"></div>
-            </div>
+            <div id="previewBird" class="bird-viewport" aria-label="Calopsita 3D de pré-visualização"></div>
           </div>
         </div>
       </section>
@@ -54,15 +46,7 @@
         <div class="card game-cage-card">
           <h2>Seu cantinho da calopsita</h2>
           <div class="cage game-cage" id="gameCage">
-            <div id="gameBird" class="bird mood-feliz">
-              <div class="crest"></div>
-              <div class="head">
-                <div class="eye"></div>
-                <div class="beak"></div>
-                <div class="cheek"></div>
-              </div>
-              <div class="body"></div>
-            </div>
+            <div id="gameBird" class="bird-viewport" aria-label="Calopsita 3D do jogo"></div>
           </div>
           <p class="tip">Dica: clique na calopsita para fazer carinho 💛</p>
         </div>
@@ -93,6 +77,7 @@
       </section>
     </main>
 
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
