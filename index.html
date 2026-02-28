@@ -56,6 +56,13 @@
 
         <div class="card hud-card">
           <h2>Painel de status</h2>
+
+          <div class="level-box">
+            <div class="status-head"><span>Nível da guardiã</span><strong id="levelValue">Nível 1</strong></div>
+            <div class="bar-track xp"><div id="xpBar" class="bar-fill"></div></div>
+            <small id="xpValue">0 / 100 XP</small>
+          </div>
+
           <div class="status-item">
             <div class="status-head"><span>Água</span><strong id="waterValue">100%</strong></div>
             <div class="bar-track"><div id="waterBar" class="bar-fill"></div></div>
@@ -76,6 +83,27 @@
             <button id="foodBtn" class="btn">Encher pote de ração</button>
             <button id="feedGrainBtn" class="btn">Pegar 1 grão e dar para calopsita</button>
             <button id="affectionBtn" class="btn">Fazer carinho</button>
+            <button id="rescueBtn" class="btn rescue hidden">⚡ Modo SOS (cuidado rápido)</button>
+          </div>
+
+          <div class="talent-mode">
+            <h3>Modo radical: Show de Talentos</h3>
+            <p id="talentStatus">Comece o show e responda aos comandos rápidos da calopsita!</p>
+            <div class="talent-stats">
+              <span>Combo atual: <strong id="comboValue">0</strong></span>
+              <span>Melhor combo: <strong id="bestComboValue">0</strong></span>
+            </div>
+            <button id="talentShowBtn" class="btn talent">Iniciar Show (30s)</button>
+          </div>
+
+          <div class="missions">
+            <h3>Missões de cuidado</h3>
+            <ul id="missionList"></ul>
+          </div>
+
+          <div class="event-log">
+            <h3>Registro da calopsita</h3>
+            <ul id="logList"></ul>
           </div>
         </div>
       </section>
