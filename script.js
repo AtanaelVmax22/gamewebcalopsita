@@ -22,6 +22,8 @@ const startBtn = document.getElementById("startBtn");
 const waterBtn = document.getElementById("waterBtn");
 const foodBtn = document.getElementById("foodBtn");
 const affectionBtn = document.getElementById("affectionBtn");
+const feedGrainBtn = document.getElementById("feedGrainBtn");
+const grain = document.getElementById("grain");
 
 class CockatielModel {
   constructor(container) {
@@ -30,6 +32,10 @@ class CockatielModel {
     this.mood = "feliz";
     this.pettingBoost = 0;
     this.blinkTimer = 0;
+    this.beakOpen = 0;
+    this.wanderTimer = 0;
+    this.wanderInterval = 1.4;
+    this.wanderTarget = new THREE.Vector2(0, 0);
 
     this.scene = new THREE.Scene();
 
@@ -186,11 +192,11 @@ class CockatielModel {
     upperBeak.position.set(0, -0.12, 0.81);
     this.headPivot.add(upperBeak);
 
-    const lowerBeak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.18, 20), this.materials.beak);
-    lowerBeak.rotation.x = Math.PI / 2.03;
-    lowerBeak.scale.set(1, 0.78, 0.9);
-    lowerBeak.position.set(0, -0.24, 0.73);
-    this.headPivot.add(lowerBeak);
+    this.lowerBeak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.18, 20), this.materials.beak);
+    this.lowerBeak.rotation.x = Math.PI / 2.03;
+    this.lowerBeak.scale.set(1, 0.78, 0.9);
+    this.lowerBeak.position.set(0, -0.24, 0.73);
+    this.headPivot.add(this.lowerBeak);
 
     this.crestGroup = new THREE.Group();
     this.crestGroup.position.set(0, 0.54, 0.04);
@@ -311,6 +317,10 @@ class CockatielModel {
 
   setMood(mood) {
     this.mood = mood;
+
+    if (mood !== "feliz") {
+      this.wanderTarget.set(0, 0);
+    }
   }
 
   pet() {
@@ -345,8 +355,28 @@ class CockatielModel {
     this.headPivot.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.82) * moodFactor.head;
     this.headPivot.rotation.x = Math.sin(elapsed * moodFactor.speed * 0.54) * 0.04;
 
-    this.leftWing.rotation.x = 0.16 + Math.sin(elapsed * moodFactor.speed * 1.2) * moodFactor.wing;
-    this.rightWing.rotation.x = 0.16 + Math.sin(elapsed * moodFactor.speed * 1.2 + 0.5) * moodFactor.wing;
+    const isHappy = this.mood === "feliz";
+    const wingBase = isHappy ? 0.32 : 0.16;
+    const wingExtra = isHappy ? 0.06 : 0;
+    this.leftWing.rotation.x = wingBase + Math.sin(elapsed * moodFactor.speed * 1.2) * (moodFactor.wing + wingExtra);
+    this.rightWing.rotation.x =
+      wingBase + Math.sin(elapsed * moodFactor.speed * 1.2 + 0.5) * (moodFactor.wing + wingExtra);
+
+    const singWave = (Math.sin(elapsed * 10.5) + 1) / 2;
+    const singingTarget = isHappy ? singWave : 0;
+    this.beakOpen += (singingTarget - this.beakOpen) * 0.2;
+    this.lowerBeak.rotation.x = Math.PI / 2.03 + this.beakOpen * 0.4;
+    this.lowerBeak.position.y = -0.24 - this.beakOpen * 0.03;
+
+    this.wanderTimer += delta;
+    if (isHappy && this.wanderTimer >= this.wanderInterval) {
+      this.wanderTimer = 0;
+      this.wanderInterval = 1 + Math.random() * 1.6;
+      this.wanderTarget.set((Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 0.6);
+    }
+
+    this.root.position.x += (this.wanderTarget.x - this.root.position.x) * 0.045;
+    this.root.position.z += (this.wanderTarget.y - this.root.position.z) * 0.045;
 
     this.tailGroup.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.8) * 0.06;
 
@@ -388,6 +418,8 @@ const state = {
   food: 100,
   affection: 100,
   mood: "feliz",
+  bowlStock: 6,
+  isFeeding: false,
   loopId: null,
 };
 
@@ -421,6 +453,12 @@ function updateBars() {
   setBar(waterBar, waterValue, state.water);
   setBar(foodBar, foodValue, state.food);
   setBar(affectionBar, affectionValue, state.affection);
+}
+
+function updateFeedControls() {
+  const hasGrain = state.bowlStock > 0;
+  grain.classList.toggle("hidden", !hasGrain);
+  feedGrainBtn.disabled = !hasGrain || state.isFeeding;
 }
 
 function updateMood() {
@@ -460,9 +498,35 @@ function addWater() {
 }
 
 function addFood() {
-  state.food = Math.min(100, state.food + 25);
+  state.food = Math.min(100, state.food + 12);
+  state.bowlStock = Math.min(12, state.bowlStock + 4);
   updateBars();
   updateMood();
+  updateFeedControls();
+}
+
+function feedGrainToCockatiel() {
+  if (state.bowlStock <= 0 || state.isFeeding) return;
+
+  state.isFeeding = true;
+  state.bowlStock -= 1;
+  feedGrainBtn.disabled = true;
+
+  grain.classList.remove("feed-anim");
+  void grain.offsetWidth;
+  grain.classList.add("feed-anim");
+
+  setTimeout(() => {
+    grain.classList.remove("feed-anim");
+    state.food = Math.min(100, state.food + 18);
+    state.affection = Math.min(100, state.affection + 6);
+    gameModel.pet();
+
+    state.isFeeding = false;
+    updateBars();
+    updateMood();
+    updateFeedControls();
+  }, 560);
 }
 
 function addAffection() {
@@ -479,6 +543,7 @@ function startGame() {
 
   updateBars();
   updateMood();
+  updateFeedControls();
   startGameLoop();
 }
 
@@ -490,9 +555,11 @@ function startGame() {
 startBtn.addEventListener("click", startGame);
 waterBtn.addEventListener("click", addWater);
 foodBtn.addEventListener("click", addFood);
+feedGrainBtn.addEventListener("click", feedGrainToCockatiel);
 affectionBtn.addEventListener("click", addAffection);
 gameBird.addEventListener("click", addAffection);
 
 applyCustomization();
 updateBars();
 updateMood();
+updateFeedControls();
