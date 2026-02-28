@@ -30,6 +30,10 @@ class CockatielModel {
     this.mood = "feliz";
     this.pettingBoost = 0;
     this.blinkTimer = 0;
+    this.beakOpen = 0;
+    this.wanderTimer = 0;
+    this.wanderInterval = 1.4;
+    this.wanderTarget = new THREE.Vector2(0, 0);
 
     this.scene = new THREE.Scene();
 
@@ -186,11 +190,11 @@ class CockatielModel {
     upperBeak.position.set(0, -0.12, 0.81);
     this.headPivot.add(upperBeak);
 
-    const lowerBeak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.18, 20), this.materials.beak);
-    lowerBeak.rotation.x = Math.PI / 2.03;
-    lowerBeak.scale.set(1, 0.78, 0.9);
-    lowerBeak.position.set(0, -0.24, 0.73);
-    this.headPivot.add(lowerBeak);
+    this.lowerBeak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.18, 20), this.materials.beak);
+    this.lowerBeak.rotation.x = Math.PI / 2.03;
+    this.lowerBeak.scale.set(1, 0.78, 0.9);
+    this.lowerBeak.position.set(0, -0.24, 0.73);
+    this.headPivot.add(this.lowerBeak);
 
     this.crestGroup = new THREE.Group();
     this.crestGroup.position.set(0, 0.54, 0.04);
@@ -311,6 +315,10 @@ class CockatielModel {
 
   setMood(mood) {
     this.mood = mood;
+
+    if (mood !== "feliz") {
+      this.wanderTarget.set(0, 0);
+    }
   }
 
   pet() {
@@ -345,8 +353,28 @@ class CockatielModel {
     this.headPivot.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.82) * moodFactor.head;
     this.headPivot.rotation.x = Math.sin(elapsed * moodFactor.speed * 0.54) * 0.04;
 
-    this.leftWing.rotation.x = 0.16 + Math.sin(elapsed * moodFactor.speed * 1.2) * moodFactor.wing;
-    this.rightWing.rotation.x = 0.16 + Math.sin(elapsed * moodFactor.speed * 1.2 + 0.5) * moodFactor.wing;
+    const isHappy = this.mood === "feliz";
+    const wingBase = isHappy ? 0.32 : 0.16;
+    const wingExtra = isHappy ? 0.06 : 0;
+    this.leftWing.rotation.x = wingBase + Math.sin(elapsed * moodFactor.speed * 1.2) * (moodFactor.wing + wingExtra);
+    this.rightWing.rotation.x =
+      wingBase + Math.sin(elapsed * moodFactor.speed * 1.2 + 0.5) * (moodFactor.wing + wingExtra);
+
+    const singWave = (Math.sin(elapsed * 10.5) + 1) / 2;
+    const singingTarget = isHappy ? singWave : 0;
+    this.beakOpen += (singingTarget - this.beakOpen) * 0.2;
+    this.lowerBeak.rotation.x = Math.PI / 2.03 + this.beakOpen * 0.4;
+    this.lowerBeak.position.y = -0.24 - this.beakOpen * 0.03;
+
+    this.wanderTimer += delta;
+    if (isHappy && this.wanderTimer >= this.wanderInterval) {
+      this.wanderTimer = 0;
+      this.wanderInterval = 1 + Math.random() * 1.6;
+      this.wanderTarget.set((Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 0.6);
+    }
+
+    this.root.position.x += (this.wanderTarget.x - this.root.position.x) * 0.045;
+    this.root.position.z += (this.wanderTarget.y - this.root.position.z) * 0.045;
 
     this.tailGroup.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.8) * 0.06;
 
