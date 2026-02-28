@@ -300,3 +300,48 @@ select {
   color: #2f8b6d;
   font-weight: 600;
 }
+
+.talent-mode {
+  margin-top: 0.9rem;
+  padding: 0.8rem;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #f8f1ff, #eef5ff);
+  border: 1px solid #dfd6ff;
+}
+
+.talent-mode h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+#talentStatus {
+  margin: 0 0 0.55rem;
+  font-size: 0.9rem;
+  color: #5e5883;
+}
+
+.talent-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #4e4a6e;
+  margin-bottom: 0.55rem;
+}
+
+.btn.talent {
+  background: linear-gradient(130deg, #a96bff, #71bcff);
+}
+
+.bird-fallback {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 40% 35%, #fff6d6, #f7d79f);
+}
+
+.bird-fallback-label {
+  font-weight: 700;
+  color: #6f4b2d;
+  text-align: center;
+  max-width: 80%;
+}

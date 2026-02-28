@@ -30,6 +30,10 @@ const xpValue = document.getElementById("xpValue");
 const levelValue = document.getElementById("levelValue");
 const missionList = document.getElementById("missionList");
 const logList = document.getElementById("logList");
+const talentShowBtn = document.getElementById("talentShowBtn");
+const talentStatus = document.getElementById("talentStatus");
+const comboValue = document.getElementById("comboValue");
+const bestComboValue = document.getElementById("bestComboValue");
 
 class CockatielModel {
   constructor(container) {
@@ -54,10 +58,20 @@ class CockatielModel {
     this.camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100);
     this.camera.position.set(0, 1.16, 7.5);
 
-    this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setSize(width, height);
-    container.appendChild(this.renderer.domElement);
+    this.enabled = true;
+
+    try {
+      this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.renderer.setSize(width, height);
+      container.appendChild(this.renderer.domElement);
+    } catch (error) {
+      this.enabled = false;
+      container.classList.add("bird-fallback");
+      container.innerHTML = '<div class="bird-fallback-label">🪶 Visual 3D indisponível neste dispositivo</div>';
+      console.warn("WebGL indisponível, fallback 2D ativado.", error);
+      return;
+    }
 
     this.addLights();
     this.createBird();
@@ -298,6 +312,8 @@ class CockatielModel {
   }
 
   setColors({ bodyColor, headColor, cheekColor }) {
+    if (!this.materials) return;
+
     this.materials.body.color.set(bodyColor);
 
     const chestTone = new THREE.Color(bodyColor).lerp(new THREE.Color("#ffffff"), 0.28);
@@ -327,7 +343,7 @@ class CockatielModel {
   setMood(mood) {
     this.mood = mood;
 
-    if (mood !== "feliz") {
+    if (mood !== "feliz" && this.wanderTarget) {
       this.wanderTarget.set(0, 0);
     }
   }
@@ -347,6 +363,8 @@ class CockatielModel {
   }
 
   onResize() {
+    if (!this.enabled || !this.renderer) return;
+
     const width = this.container.clientWidth || 300;
     const height = this.container.clientHeight || 300;
     this.camera.aspect = width / height;
@@ -457,6 +475,12 @@ const state = {
   missions: [],
   missionProgress: { water: 0, feed: 0, affection: 0 },
   logs: [],
+  talentActive: false,
+  talentCombo: 0,
+  talentBestCombo: 0,
+  talentPrompt: null,
+  talentPromptTimeoutId: null,
+  talentEndTimeoutId: null,
 };
 
 function addLog(message) {
@@ -570,6 +594,7 @@ function saveGame() {
       missions: state.missions,
       missionProgress: state.missionProgress,
       logs: state.logs,
+      talentBestCombo: state.talentBestCombo,
     },
     customization: {
       bodyColor: bodyColorInput.value,
@@ -636,6 +661,109 @@ function triggerRandomEvent() {
   addLog(`🎲 Evento: ${selected.text}`);
   updateBars();
   updateMood();
+}
+
+function updateTalentUI() {
+  comboValue.textContent = `${state.talentCombo}`;
+  bestComboValue.textContent = `${state.talentBestCombo}`;
+
+  if (!state.talentActive) {
+    talentStatus.textContent = "Comece o show e responda aos comandos rápidos da calopsita!";
+    talentShowBtn.disabled = false;
+    return;
+  }
+
+  const promptMap = {
+    water: "💧 Rápido! Clique em ENCHER ÁGUA!",
+    food: "🥣 Agora! Clique em ENCHER POTE DE RAÇÃO!",
+    affection: "💛 Hora do carinho! Clique em FAZER CARINHO!",
+  };
+
+  talentStatus.textContent = promptMap[state.talentPrompt] || "Prepare-se para o próximo comando...";
+}
+
+function failTalentPrompt(reasonText) {
+  if (!state.talentActive) return;
+  state.talentCombo = 0;
+  state.affection = Math.max(0, state.affection - 8);
+  addLog(`🎭 Show falhou: ${reasonText}. A plateia vaiou!`);
+  updateBars();
+  updateMood();
+  state.talentPrompt = null;
+  updateTalentUI();
+  setTimeout(scheduleTalentPrompt, 550);
+}
+
+function scheduleTalentPrompt() {
+  if (!state.talentActive) return;
+
+  if (state.talentPromptTimeoutId) {
+    clearTimeout(state.talentPromptTimeoutId);
+    state.talentPromptTimeoutId = null;
+  }
+
+  const prompts = ["water", "food", "affection"];
+  state.talentPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+  updateTalentUI();
+
+  state.talentPromptTimeoutId = setTimeout(() => {
+    failTalentPrompt("demorou para responder");
+  }, 2200);
+}
+
+function resolveTalentInput(action) {
+  if (!state.talentActive || !state.talentPrompt) return;
+
+  if (state.talentPromptTimeoutId) {
+    clearTimeout(state.talentPromptTimeoutId);
+    state.talentPromptTimeoutId = null;
+  }
+
+  if (state.talentPrompt === action) {
+    state.talentCombo += 1;
+    state.talentBestCombo = Math.max(state.talentBestCombo, state.talentCombo);
+    gainXp(18 + state.talentCombo * 2, "Acerto no show de talentos");
+    addLog(`🎶 Acerto no show! Combo x${state.talentCombo}.`);
+    state.affection = Math.min(100, state.affection + 4);
+    updateBars();
+    updateMood();
+    state.talentPrompt = null;
+    updateTalentUI();
+    setTimeout(scheduleTalentPrompt, 380);
+    return;
+  }
+
+  failTalentPrompt("comando errado");
+}
+
+function endTalentShow() {
+  if (!state.talentActive) return;
+
+  state.talentActive = false;
+  state.talentPrompt = null;
+  if (state.talentPromptTimeoutId) clearTimeout(state.talentPromptTimeoutId);
+  if (state.talentEndTimeoutId) clearTimeout(state.talentEndTimeoutId);
+  state.talentPromptTimeoutId = null;
+  state.talentEndTimeoutId = null;
+
+  const bonusXp = state.talentBestCombo >= 8 ? 95 : state.talentBestCombo >= 5 ? 55 : 25;
+  gainXp(bonusXp, "Encerramento do show");
+  addLog(`🏁 Show encerrado! Melhor combo: ${state.talentBestCombo}. Bônus: ${bonusXp} XP.`);
+  state.talentCombo = 0;
+  updateTalentUI();
+}
+
+function startTalentShow() {
+  if (state.talentActive) return;
+  state.talentActive = true;
+  state.talentCombo = 0;
+  state.talentPrompt = null;
+  talentShowBtn.disabled = true;
+  addLog("🎤 Show de talentos começou! Responda rápido aos comandos.");
+  updateTalentUI();
+
+  scheduleTalentPrompt();
+  state.talentEndTimeoutId = setTimeout(endTalentShow, 30000);
 }
 
 function applyCustomization() {
@@ -721,6 +849,7 @@ function addWater() {
   incrementMission("water");
   gameModel.drink();
   addLog("💧 A calopsita bebeu água fresquinha.");
+  resolveTalentInput("water");
   updateBars();
   updateMood();
 }
@@ -729,6 +858,7 @@ function addFood() {
   state.food = Math.min(100, state.food + 12);
   state.bowlStock = Math.min(12, state.bowlStock + 4);
   gainXp(9, "Reposição de ração");
+  resolveTalentInput("food");
   updateBars();
   updateMood();
   updateFeedControls();
@@ -751,6 +881,7 @@ function feedGrainToCockatiel() {
     state.affection = Math.min(100, state.affection + 6);
     gainXp(14, "Alimentação manual");
     incrementMission("feed");
+    resolveTalentInput("food");
     gameModel.pet();
 
     state.isFeeding = false;
@@ -764,6 +895,7 @@ function addAffection() {
   state.affection = Math.min(100, state.affection + 30);
   gainXp(10, "Carinho");
   incrementMission("affection");
+  resolveTalentInput("affection");
   gameModel.pet();
   updateBars();
   updateMood();
@@ -793,6 +925,7 @@ function startGame() {
   updateMood();
   updateFeedControls();
   startGameLoop();
+  updateTalentUI();
   addLog("🐣 Turno iniciado. Cuide bem da sua calopsita!");
 }
 
@@ -807,6 +940,7 @@ foodBtn.addEventListener("click", addFood);
 feedGrainBtn.addEventListener("click", feedGrainToCockatiel);
 affectionBtn.addEventListener("click", addAffection);
 rescueBtn.addEventListener("click", useRescueMode);
+talentShowBtn.addEventListener("click", startTalentShow);
 gameBird.addEventListener("click", addAffection);
 
 loadGame();
@@ -818,3 +952,4 @@ updateXpUI();
 updateBars();
 updateMood();
 updateFeedControls();
+updateTalentUI();
