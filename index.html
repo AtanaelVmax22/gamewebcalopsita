@@ -54,7 +54,8 @@
         <div class="card game-cage-card">
           <h2>Seu cantinho da calopsita</h2>
           <div class="cage game-cage" id="gameCage">
-            <div id="gameBird" class="bird mood-feliz">
+            <div id="bird3dContainer" class="bird-3d-container" aria-label="Calopsita 3D"></div>
+            <div id="gameBird" class="bird mood-feliz hidden-fallback">
               <div class="crest"></div>
               <div class="head">
                 <div class="eye"></div>
@@ -93,6 +94,8 @@
       </section>
     </main>
 
-    <script src="script.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script type="module" src="js/main.js"></script>
   </body>
 </html>

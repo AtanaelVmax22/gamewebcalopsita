@@ -121,6 +121,7 @@ select {
     #8393ab47 22px 26px
   );
   pointer-events: none;
+  z-index: 2;
 }
 
 .bird {
@@ -131,6 +132,25 @@ select {
   width: 120px;
   height: 160px;
   cursor: pointer;
+  z-index: 1;
+}
+
+.hidden-fallback {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bird-3d-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.bird-3d-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 .body {
