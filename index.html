@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criador de Calopsita</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section id="screen-custom" class="screen active">
+        <div class="card custom-card">
+          <h1>Personalize sua calopsita</h1>
+          <div class="field-group">
+            <label for="bodyColor">Cor do corpo</label>
+            <input id="bodyColor" type="color" value="#c7cfd9" />
+          </div>
+          <div class="field-group">
+            <label for="headColor">Cor da cabeça</label>
+            <input id="headColor" type="color" value="#f3dea6" />
+          </div>
+          <div class="field-group">
+            <label for="cheekColor">Cor da bochecha</label>
+            <input id="cheekColor" type="color" value="#f29b74" />
+          </div>
+          <div class="field-group">
+            <label for="crestStyle">Estilo da crista</label>
+            <select id="crestStyle">
+              <option value="up">Em pé (alerta)</option>
+              <option value="down">Caidinha (relaxada)</option>
+              <option value="messy">Bagunçada (animada)</option>
+            </select>
+          </div>
+          <button id="startBtn" class="btn primary">Começar o jogo</button>
+        </div>
+
+        <div class="card preview-card">
+          <h2>Pré-visualização</h2>
+          <div class="cage preview-cage">
+            <div id="previewBird" class="bird mood-feliz">
+              <div class="crest"></div>
+              <div class="head">
+                <div class="eye"></div>
+                <div class="beak"></div>
+                <div class="cheek"></div>
+              </div>
+              <div class="body"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-game" class="screen">
+        <div class="card game-cage-card">
+          <h2>Seu cantinho da calopsita</h2>
+          <div class="cage game-cage" id="gameCage">
+            <div id="gameBird" class="bird mood-feliz">
+              <div class="crest"></div>
+              <div class="head">
+                <div class="eye"></div>
+                <div class="beak"></div>
+                <div class="cheek"></div>
+              </div>
+              <div class="body"></div>
+            </div>
+          </div>
+          <p class="tip">Dica: clique na calopsita para fazer carinho 💛</p>
+        </div>
+
+        <div class="card hud-card">
+          <h2>Painel de status</h2>
+          <div class="status-item">
+            <div class="status-head"><span>Água</span><strong id="waterValue">100%</strong></div>
+            <div class="bar-track"><div id="waterBar" class="bar-fill"></div></div>
+          </div>
+          <div class="status-item">
+            <div class="status-head"><span>Ração</span><strong id="foodValue">100%</strong></div>
+            <div class="bar-track"><div id="foodBar" class="bar-fill"></div></div>
+          </div>
+          <div class="status-item">
+            <div class="status-head"><span>Carinho</span><strong id="affectionValue">100%</strong></div>
+            <div class="bar-track"><div id="affectionBar" class="bar-fill"></div></div>
+          </div>
+
+          <p class="mood-label">Humor: <strong id="moodText">Feliz</strong></p>
+
+          <div class="actions">
+            <button id="waterBtn" class="btn">Encher água</button>
+            <button id="foodBtn" class="btn">Colocar ração</button>
+            <button id="affectionBtn" class="btn">Fazer carinho</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
