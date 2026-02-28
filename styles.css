@@ -1,0 +1,365 @@
+:root {
+  --bg1: #f5f9ff;
+  --bg2: #eef7f2;
+  --card-bg: #ffffffd9;
+  --text: #24324a;
+  --muted: #5d6a80;
+  --accent: #7aa5ff;
+  --accent-2: #8ad3bb;
+  --bar-color: #56cc9d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  color: var(--text);
+  background: linear-gradient(140deg, var(--bg1), var(--bg2));
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.screen {
+  display: none;
+  gap: 1rem;
+}
+
+.screen.active {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid #e6e9f3;
+  border-radius: 20px;
+  padding: 1.2rem;
+  box-shadow: 0 10px 25px #6f84a814;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+.field-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.8rem 0;
+  gap: 0.8rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+input[type="color"] {
+  width: 52px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+select {
+  border: 1px solid #cdd7ec;
+  border-radius: 10px;
+  padding: 0.55rem;
+  font: inherit;
+  color: var(--text);
+}
+
+.btn {
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(130deg, var(--accent), var(--accent-2));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.primary {
+  margin-top: 0.6rem;
+  width: 100%;
+}
+
+.cage {
+  position: relative;
+  margin: 0.75rem auto;
+  width: min(350px, 100%);
+  height: 320px;
+  border-radius: 30px;
+  border: 5px solid color-mix(in srgb, var(--accent) 55%, #ffffff);
+  background: linear-gradient(180deg, #f8fbff, #eef4ff);
+  overflow: hidden;
+}
+
+.cage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 22px,
+    #8393ab47 22px 26px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.bird {
+  position: absolute;
+  left: 40%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 160px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.hidden-fallback {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bird-3d-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.bird-3d-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.body {
+  position: absolute;
+  width: 90px;
+  height: 95px;
+  left: 15px;
+  top: 55px;
+  border-radius: 44% 44% 52% 52%;
+  background: #c7cfd9;
+}
+
+.head {
+  position: absolute;
+  width: 78px;
+  height: 72px;
+  left: 25px;
+  top: 10px;
+  border-radius: 50%;
+  background: #f3dea6;
+}
+
+.cheek {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f29b74;
+  top: 30px;
+  left: 8px;
+}
+
+.eye {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #232323;
+  top: 25px;
+  right: 18px;
+}
+
+.beak {
+  position: absolute;
+  width: 14px;
+  height: 10px;
+  background: #e39a4f;
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  right: 3px;
+  top: 33px;
+}
+
+.crest {
+  position: absolute;
+  width: 50px;
+  height: 40px;
+  left: 43px;
+  top: -10px;
+}
+
+.crest::before,
+.crest::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--crestColor, #f3dea6);
+  transform-origin: bottom center;
+}
+
+.crest::before {
+  left: 14px;
+  transform: rotate(-12deg);
+}
+
+.crest::after {
+  left: 26px;
+  transform: rotate(12deg);
+}
+
+.crest.up {
+  transform: rotate(0deg);
+}
+
+.crest.down {
+  transform: rotate(22deg) translateY(5px);
+}
+
+.crest.messy {
+  transform: rotate(-8deg);
+}
+
+.mood-feliz {
+  animation: happyMove 3s ease-in-out infinite;
+}
+
+.mood-estressada {
+  animation: stressedMove 0.55s ease-in-out infinite;
+}
+
+.mood-triste {
+  animation: sadBreath 2.4s ease-in-out infinite;
+}
+
+.petting {
+  animation: pettingWiggle 0.5s ease;
+}
+
+@keyframes happyMove {
+  0% {
+    left: 30%;
+    transform: translate(-50%, -50%) rotate(-2deg);
+  }
+  50% {
+    left: 68%;
+    transform: translate(-50%, -50%) rotate(2deg);
+  }
+  100% {
+    left: 30%;
+    transform: translate(-50%, -50%) rotate(-2deg);
+  }
+}
+
+@keyframes stressedMove {
+  0% {
+    left: 38%;
+    transform: translate(-50%, -50%) rotate(-5deg);
+  }
+  50% {
+    left: 64%;
+    transform: translate(-50%, -50%) rotate(6deg) scale(1.02);
+  }
+  100% {
+    left: 38%;
+    transform: translate(-50%, -50%) rotate(-5deg);
+  }
+}
+
+@keyframes sadBreath {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+}
+
+@keyframes pettingWiggle {
+  0% {
+    transform: translate(-50%, -50%) rotate(0);
+  }
+  25% {
+    transform: translate(-50%, -50%) rotate(7deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(-7deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(0);
+  }
+}
+
+.status-item {
+  margin: 0.85rem 0;
+}
+
+.status-head {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+
+.bar-track {
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: #e3ebf9;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--bar-color), #76d9b0);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+.mood-label {
+  margin: 1rem 0;
+  font-size: 1.1rem;
+}
+
+.tip {
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+@media (max-width: 700px) {
+  .cage {
+    height: 270px;
+  }
+}
