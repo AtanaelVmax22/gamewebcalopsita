@@ -137,6 +137,59 @@ select {
   display: block;
 }
 
+
+.food-bowl {
+  position: absolute;
+  left: 24px;
+  bottom: 18px;
+  width: 86px;
+  height: 44px;
+  border-radius: 0 0 40px 40px;
+  background: linear-gradient(180deg, #d69762, #aa6b3c);
+  border: 3px solid #8d5329;
+  z-index: 1;
+  box-shadow: 0 7px 14px #00000025;
+}
+
+.food-bowl::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  top: -10px;
+  height: 14px;
+  border-radius: 20px;
+  border: 2px solid #8d5329;
+  background: linear-gradient(180deg, #f8cb8a, #e3a75f);
+}
+
+.grain {
+  position: absolute;
+  left: 34px;
+  top: -3px;
+  width: 12px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f5d55d;
+  box-shadow: 0 0 0 1px #ddb843;
+  transition: transform 0.55s ease, opacity 0.2s ease;
+  transform: translate(0, 0) scale(1);
+}
+
+.grain.feed-anim {
+  transform: translate(145px, -132px) scale(0.6);
+}
+
+.grain.hidden {
+  opacity: 0;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+  opacity: 0.7;
+}
+
 .status-item {
   margin: 0.85rem 0;
 }

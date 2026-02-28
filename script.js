@@ -22,6 +22,8 @@ const startBtn = document.getElementById("startBtn");
 const waterBtn = document.getElementById("waterBtn");
 const foodBtn = document.getElementById("foodBtn");
 const affectionBtn = document.getElementById("affectionBtn");
+const feedGrainBtn = document.getElementById("feedGrainBtn");
+const grain = document.getElementById("grain");
 
 class CockatielModel {
   constructor(container) {
@@ -416,6 +418,8 @@ const state = {
   food: 100,
   affection: 100,
   mood: "feliz",
+  bowlStock: 6,
+  isFeeding: false,
   loopId: null,
 };
 
@@ -449,6 +453,12 @@ function updateBars() {
   setBar(waterBar, waterValue, state.water);
   setBar(foodBar, foodValue, state.food);
   setBar(affectionBar, affectionValue, state.affection);
+}
+
+function updateFeedControls() {
+  const hasGrain = state.bowlStock > 0;
+  grain.classList.toggle("hidden", !hasGrain);
+  feedGrainBtn.disabled = !hasGrain || state.isFeeding;
 }
 
 function updateMood() {
@@ -488,9 +498,35 @@ function addWater() {
 }
 
 function addFood() {
-  state.food = Math.min(100, state.food + 25);
+  state.food = Math.min(100, state.food + 12);
+  state.bowlStock = Math.min(12, state.bowlStock + 4);
   updateBars();
   updateMood();
+  updateFeedControls();
+}
+
+function feedGrainToCockatiel() {
+  if (state.bowlStock <= 0 || state.isFeeding) return;
+
+  state.isFeeding = true;
+  state.bowlStock -= 1;
+  feedGrainBtn.disabled = true;
+
+  grain.classList.remove("feed-anim");
+  void grain.offsetWidth;
+  grain.classList.add("feed-anim");
+
+  setTimeout(() => {
+    grain.classList.remove("feed-anim");
+    state.food = Math.min(100, state.food + 18);
+    state.affection = Math.min(100, state.affection + 6);
+    gameModel.pet();
+
+    state.isFeeding = false;
+    updateBars();
+    updateMood();
+    updateFeedControls();
+  }, 560);
 }
 
 function addAffection() {
@@ -507,6 +543,7 @@ function startGame() {
 
   updateBars();
   updateMood();
+  updateFeedControls();
   startGameLoop();
 }
 
@@ -518,9 +555,11 @@ function startGame() {
 startBtn.addEventListener("click", startGame);
 waterBtn.addEventListener("click", addWater);
 foodBtn.addEventListener("click", addFood);
+feedGrainBtn.addEventListener("click", feedGrainToCockatiel);
 affectionBtn.addEventListener("click", addAffection);
 gameBird.addEventListener("click", addAffection);
 
 applyCustomization();
 updateBars();
 updateMood();
+updateFeedControls();
