@@ -30,6 +30,11 @@ class CockatielModel {
     this.mood = "feliz";
     this.pettingBoost = 0;
     this.blinkTimer = 0;
+    this.randomMoveTimer = 0;
+    this.randomMoveInterval = 1.8;
+    this.randomOffset = new THREE.Vector2(0, 0);
+    this.randomOffsetTarget = new THREE.Vector2(0, 0);
+    this.singTimer = 0;
 
     this.scene = new THREE.Scene();
 
@@ -180,17 +185,17 @@ class CockatielModel {
     cheekR.position.x = 0.34;
     this.headPivot.add(cheekR);
 
-    const upperBeak = new THREE.Mesh(new THREE.ConeGeometry(0.145, 0.34, 24), this.materials.beak);
-    upperBeak.rotation.x = Math.PI / 2;
-    upperBeak.scale.set(1.03, 0.9, 1.28);
-    upperBeak.position.set(0, -0.12, 0.81);
-    this.headPivot.add(upperBeak);
+    this.upperBeak = new THREE.Mesh(new THREE.ConeGeometry(0.145, 0.34, 24), this.materials.beak);
+    this.upperBeak.rotation.x = Math.PI / 2;
+    this.upperBeak.scale.set(1.03, 0.9, 1.28);
+    this.upperBeak.position.set(0, -0.12, 0.81);
+    this.headPivot.add(this.upperBeak);
 
-    const lowerBeak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.18, 20), this.materials.beak);
-    lowerBeak.rotation.x = Math.PI / 2.03;
-    lowerBeak.scale.set(1, 0.78, 0.9);
-    lowerBeak.position.set(0, -0.24, 0.73);
-    this.headPivot.add(lowerBeak);
+    this.lowerBeak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.18, 20), this.materials.beak);
+    this.lowerBeak.rotation.x = Math.PI / 2.03;
+    this.lowerBeak.scale.set(1, 0.78, 0.9);
+    this.lowerBeak.position.set(0, -0.24, 0.73);
+    this.headPivot.add(this.lowerBeak);
 
     this.crestGroup = new THREE.Group();
     this.crestGroup.position.set(0, 0.54, 0.04);
@@ -280,6 +285,25 @@ class CockatielModel {
     this.floorShadow.rotation.x = -Math.PI / 2;
     this.floorShadow.position.y = -1.82;
     this.scene.add(this.floorShadow);
+
+    this.songNotes = [];
+    const noteBase = new THREE.MeshStandardMaterial({
+      color: 0xffe680,
+      emissive: 0xff9f66,
+      emissiveIntensity: 0.35,
+      roughness: 0.45,
+      metalness: 0.04,
+      transparent: true,
+      opacity: 0,
+    });
+
+    for (let i = 0; i < 3; i += 1) {
+      const note = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 10), noteBase.clone());
+      note.visible = false;
+      note.userData.seed = i * 0.8;
+      this.scene.add(note);
+      this.songNotes.push(note);
+    }
   }
 
   setColors({ bodyColor, headColor, cheekColor }) {
@@ -330,25 +354,73 @@ class CockatielModel {
     const elapsed = this.clock.elapsedTime;
 
     const moodFactor = {
-      feliz: { sway: 0.14, speed: 1.35, bob: 0.045, head: 0.07, wing: 0.045 },
-      estressada: { sway: 0.27, speed: 3.8, bob: 0.04, head: 0.14, wing: 0.085 },
-      triste: { sway: 0.08, speed: 0.75, bob: 0.02, head: 0.035, wing: 0.02 },
+      feliz: { sway: 0.17, speed: 1.5, bob: 0.05, head: 0.085, wing: 0.09, wingOpen: 0.33, random: 0.17 },
+      estressada: { sway: 0.27, speed: 3.8, bob: 0.04, head: 0.14, wing: 0.085, wingOpen: 0.16, random: 0.06 },
+      triste: { sway: 0.08, speed: 0.75, bob: 0.02, head: 0.035, wing: 0.02, wingOpen: 0.12, random: 0.03 },
     }[this.mood];
+
+    const happyMood = this.mood === "feliz";
+
+    this.randomMoveTimer += delta;
+    if (this.randomMoveTimer >= this.randomMoveInterval) {
+      this.randomMoveTimer = 0;
+      this.randomMoveInterval = 1.2 + Math.random() * 2.1;
+      this.randomOffsetTarget.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2);
+    }
+    this.randomOffset.lerp(this.randomOffsetTarget, 0.025);
 
     const petWiggle = this.pettingBoost * Math.sin(elapsed * 12.5) * 0.28;
     this.pettingBoost = Math.max(0, this.pettingBoost - delta * 2.3);
 
-    this.root.rotation.y = Math.sin(elapsed * moodFactor.speed) * moodFactor.sway + petWiggle;
+    const randomX = this.randomOffset.x * moodFactor.random;
+    const randomZ = this.randomOffset.y * moodFactor.random * 0.45;
+
+    this.root.rotation.y = Math.sin(elapsed * moodFactor.speed) * moodFactor.sway + petWiggle + randomX * 0.25;
     this.root.rotation.x = -0.04 + Math.sin(elapsed * moodFactor.speed * 0.56) * 0.02;
     this.root.position.y = -0.3 + Math.sin(elapsed * moodFactor.speed * 1.1) * moodFactor.bob;
+    this.root.position.x = randomX;
+    this.root.position.z = randomZ;
 
-    this.headPivot.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.82) * moodFactor.head;
+    this.headPivot.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.82) * moodFactor.head + randomX * 0.12;
     this.headPivot.rotation.x = Math.sin(elapsed * moodFactor.speed * 0.54) * 0.04;
 
-    this.leftWing.rotation.x = 0.16 + Math.sin(elapsed * moodFactor.speed * 1.2) * moodFactor.wing;
-    this.rightWing.rotation.x = 0.16 + Math.sin(elapsed * moodFactor.speed * 1.2 + 0.5) * moodFactor.wing;
+    const wingBase = moodFactor.wingOpen + Math.sin(elapsed * moodFactor.speed * 1.2) * moodFactor.wing;
+    this.leftWing.rotation.x = wingBase;
+    this.rightWing.rotation.x = moodFactor.wingOpen + Math.sin(elapsed * moodFactor.speed * 1.2 + 0.5) * moodFactor.wing;
 
-    this.tailGroup.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.8) * 0.06;
+    this.tailGroup.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.8) * 0.06 + randomX * 0.08;
+
+    if (this.lowerBeak) {
+      if (happyMood) {
+        this.singTimer += delta * 4.8;
+        this.lowerBeak.rotation.x = Math.PI / 2.03 + Math.max(0, Math.sin(this.singTimer)) * 0.25;
+      } else {
+        this.singTimer = 0;
+        this.lowerBeak.rotation.x += (Math.PI / 2.03 - this.lowerBeak.rotation.x) * 0.2;
+      }
+    }
+
+    if (this.songNotes) {
+      this.songNotes.forEach((note, idx) => {
+        if (!happyMood) {
+          note.visible = false;
+          note.material.opacity = 0;
+          return;
+        }
+
+        const t = (elapsed * 0.9 + idx * 0.33) % 1;
+        const lift = t * 0.75;
+        note.visible = true;
+        note.position.set(
+          this.root.position.x + 0.55 + idx * 0.1,
+          1.65 + lift + Math.sin(elapsed * 4 + note.userData.seed) * 0.06,
+          0.65 + Math.cos(elapsed * 3 + note.userData.seed) * 0.12
+        );
+        note.material.opacity = Math.max(0, 0.85 - t);
+        const s = 0.7 + t * 0.9;
+        note.scale.set(s, s, s);
+      });
+    }
 
     if (this.crestTarget) {
       this.crestGroup.rotation.x += (this.crestTarget.x - this.crestGroup.rotation.x) * 0.1;
