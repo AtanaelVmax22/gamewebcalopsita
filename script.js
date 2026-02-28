@@ -42,6 +42,9 @@ class CockatielModel {
     this.wanderTimer = 0;
     this.wanderInterval = 1.4;
     this.wanderTarget = new THREE.Vector2(0, 0);
+    this.level = 1;
+    this.scaleTarget = 1;
+    this.drinkTimer = 0;
 
     this.scene = new THREE.Scene();
 
@@ -333,6 +336,16 @@ class CockatielModel {
     this.pettingBoost = 1;
   }
 
+  drink() {
+    this.drinkTimer = 0.65;
+  }
+
+  setLevel(level) {
+    const clampedLevel = Math.max(1, level);
+    this.level = clampedLevel;
+    this.scaleTarget = Math.min(1.65, 1 + (clampedLevel - 1) * 0.035);
+  }
+
   onResize() {
     const width = this.container.clientWidth || 300;
     const height = this.container.clientHeight || 300;
@@ -354,12 +367,21 @@ class CockatielModel {
     const petWiggle = this.pettingBoost * Math.sin(elapsed * 12.5) * 0.28;
     this.pettingBoost = Math.max(0, this.pettingBoost - delta * 2.3);
 
+    const isDrinking = this.drinkTimer > 0;
+    if (isDrinking) this.drinkTimer = Math.max(0, this.drinkTimer - delta);
+
     this.root.rotation.y = Math.sin(elapsed * moodFactor.speed) * moodFactor.sway + petWiggle;
     this.root.rotation.x = -0.04 + Math.sin(elapsed * moodFactor.speed * 0.56) * 0.02;
     this.root.position.y = -0.3 + Math.sin(elapsed * moodFactor.speed * 1.1) * moodFactor.bob;
 
+    const currentScale = this.root.scale.x;
+    const smoothedScale = currentScale + (this.scaleTarget - currentScale) * 0.06;
+    this.root.scale.setScalar(smoothedScale);
+    this.floorShadow.scale.setScalar(0.9 + smoothedScale * 0.45);
+
+    const drinkProgress = isDrinking ? Math.sin((1 - this.drinkTimer / 0.65) * Math.PI) : 0;
     this.headPivot.rotation.z = Math.sin(elapsed * moodFactor.speed * 0.82) * moodFactor.head;
-    this.headPivot.rotation.x = Math.sin(elapsed * moodFactor.speed * 0.54) * 0.04;
+    this.headPivot.rotation.x = Math.sin(elapsed * moodFactor.speed * 0.54) * 0.04 + drinkProgress * 0.52;
 
     const isHappy = this.mood === "feliz";
     const wingBase = isHappy ? 0.32 : 0.16;
@@ -369,7 +391,7 @@ class CockatielModel {
       wingBase + Math.sin(elapsed * moodFactor.speed * 1.2 + 0.5) * (moodFactor.wing + wingExtra);
 
     const singWave = (Math.sin(elapsed * 10.5) + 1) / 2;
-    const singingTarget = isHappy ? singWave : 0;
+    const singingTarget = isDrinking ? 0.22 : isHappy ? singWave : 0;
     this.beakOpen += (singingTarget - this.beakOpen) * 0.2;
     this.lowerBeak.rotation.x = Math.PI / 2.03 + this.beakOpen * 0.4;
     this.lowerBeak.position.y = -0.24 - this.beakOpen * 0.03;
@@ -482,6 +504,7 @@ function updateXpUI() {
   xpBar.style.width = `${progress}%`;
   xpValue.textContent = `${Math.round(state.xp)} / ${target} XP`;
   levelValue.textContent = `Nível ${state.level}`;
+  gameModel.setLevel(state.level);
 }
 
 function ensureMissions() {
@@ -696,6 +719,8 @@ function addWater() {
   state.water = Math.min(100, state.water + 25);
   gainXp(12, "Hidratação");
   incrementMission("water");
+  gameModel.drink();
+  addLog("💧 A calopsita bebeu água fresquinha.");
   updateBars();
   updateMood();
 }
@@ -748,6 +773,7 @@ function useRescueMode() {
   state.water = Math.min(100, state.water + 18);
   state.food = Math.min(100, state.food + 18);
   state.affection = Math.min(100, state.affection + 18);
+  gameModel.drink();
   gainXp(16, "Ação SOS");
   addLog("⚡ Modo SOS acionado para estabilizar a calopsita.");
   updateBars();
