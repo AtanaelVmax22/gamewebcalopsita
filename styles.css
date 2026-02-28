@@ -238,3 +238,65 @@ select {
     height: 270px;
   }
 }
+
+.level-box {
+  margin: 0.85rem 0 1rem;
+  padding: 0.75rem;
+  border: 1px solid #dce5f5;
+  border-radius: 14px;
+  background: #f7faff;
+}
+
+.bar-track.xp {
+  height: 11px;
+  margin-bottom: 0.3rem;
+}
+
+#xpBar {
+  width: 0;
+  background: linear-gradient(90deg, #9c74ff, #7cc3ff);
+}
+
+#xpValue {
+  color: var(--muted);
+}
+
+.rescue {
+  background: linear-gradient(130deg, #ff7d65, #f4ae57);
+}
+
+.hidden {
+  display: none;
+}
+
+.missions,
+.event-log {
+  margin-top: 1rem;
+  border-top: 1px dashed #ccd7ec;
+  padding-top: 0.7rem;
+}
+
+.missions h3,
+.event-log h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+#missionList,
+#logList {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+#missionList li,
+#logList li {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+#missionList li.done {
+  color: #2f8b6d;
+  font-weight: 600;
+}
